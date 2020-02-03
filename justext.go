@@ -2,7 +2,16 @@ package justext
 
 import "github.com/rivo/tview"
 
+type EditorState struct {
+	Buffer string
+	Cursor int
+}
+
+var State EditorState
+
 func Run() {
+	State = EditorState{}
+
 	grid := tview.NewGrid().
 		SetRows(1, 0, 1).
 		SetBorders(true).
