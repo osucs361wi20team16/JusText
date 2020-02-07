@@ -4,6 +4,7 @@ import "github.com/rivo/tview"
 
 type EditorState struct {
 	Buffer   string
+	App      *tview.Application
 	TextView *tview.TextView
 	Cursor   int
 }
@@ -20,7 +21,9 @@ func Run() {
 		AddItem(EditorView(), 1, 0, 1, 1, 1, 1, true).
 		AddItem(StatusBarView(), 2, 0, 1, 1, 1, 1, false)
 
-	if err := tview.NewApplication().
+	State.App = tview.NewApplication()
+
+	if err := State.App.
 		SetRoot(grid, true).
 		SetFocus(State.TextView).
 		Run(); err != nil {
