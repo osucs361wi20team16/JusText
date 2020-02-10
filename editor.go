@@ -29,6 +29,6 @@ func EditorView() *tview.TextView {
 		saveFile()
 		return nil
 	})
-	State.TextView.SetText("")
+	State.TextView.SetText(State.Buffer)
 	return State.TextView
 }
