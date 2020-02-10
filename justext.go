@@ -7,6 +7,7 @@ type EditorState struct {
 	App      *tview.Application
 	TextView *tview.TextView
 	Cursor   int
+	Filename string
 }
 
 var State EditorState
@@ -14,6 +15,7 @@ var State EditorState
 func Run() {
 	State = EditorState{}
 
+	State.Filename = "test.txt"
 	grid := tview.NewGrid().
 		SetRows(1, 0, 1).
 		SetBorders(true).
