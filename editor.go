@@ -26,6 +26,7 @@ func EditorView() *tview.TextView {
 		}
 		State.TextView.SetText(State.Buffer)
 		State.App.Draw()
+		saveFile()
 		return nil
 	})
 	State.TextView.SetText("")
