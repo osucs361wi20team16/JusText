@@ -28,6 +28,6 @@ func EditorView() *tview.TextView {
 		State.App.Draw()
 		return nil
 	})
-	State.TextView.SetText("")
+	State.TextView.SetText(State.Buffer)
 	return State.TextView
 }
