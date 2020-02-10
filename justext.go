@@ -7,16 +7,19 @@ type EditorState struct {
 	App      *tview.Application
 	TextView *tview.TextView
 	Cursor   int
+	menuGrid *tview.Grid
+	maingrid *tview.Grid
 	Filename string
+	SwitchMenuColumn bool
 }
 
 var State EditorState
 
 func Run() {
 	State = EditorState{}
-
+	State.SwitchMenuColumn = false
 	State.Filename = "test.txt"
-	grid := tview.NewGrid().
+	State.maingrid = tview.NewGrid().
 		SetRows(1, 0, 1).
 		SetBorders(true).
 		AddItem(MenuBarView(), 0, 0, 1, 1, 1, 1, false).
@@ -26,7 +29,7 @@ func Run() {
 	State.App = tview.NewApplication()
 
 	if err := State.App.
-		SetRoot(grid, true).
+		SetRoot(State.maingrid, true).
 		SetFocus(State.TextView).
 		Run(); err != nil {
 		panic(err)
