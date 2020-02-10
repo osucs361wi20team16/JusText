@@ -3,16 +3,16 @@ JusText text editor Agile project for CS361
 
 ## Usage
 
- |--------------------------------------
- \| File   Edit
- |--------------------------------------
- |
- |
- |         < File editing area >
- |
- |--------------------------------------
- \| < Status messages >
- |--------------------------------------
+ |-------------------------------------- \
+ \| File   Edit                          \
+ |-------------------------------------- \
+ |                                       \
+ |                                       \
+ |         < File editing area >         \
+ |                                       \
+ |-------------------------------------- \
+ \| < Status messages >                  \
+ |-------------------------------------- \
 
 ### Files
  Open a file with `justext <filename>` or start a new file with `justext`.
