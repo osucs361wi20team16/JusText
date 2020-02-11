@@ -6,9 +6,9 @@ import (
 )
 
 func EditorView() *tview.TextView {
-	State.TextView = tview.NewTextView()
+	State.TextView = tview.NewTextView().SetDynamicColors(true)
 	State.TextView.SetInputCapture(EditorInputHandler)
-	State.TextView.SetText(string(State.Buffer))
+	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
 	return State.TextView
 }
 
@@ -19,17 +19,28 @@ func EditorInputHandler(event *tcell.EventKey) *tcell.EventKey {
 			return nil
 		}
 		State.Buffer = State.Buffer[:len(State.Buffer)-1]
+		State.Cursor--
 	case tcell.KeyEscape:
 		// Esc key on this level just passes focus to the Menu
 		State.App.SetRoot(State.MainGrid, true)
 		State.App.SetFocus(State.MenuGrid)
 	case tcell.KeyEnter:
 		State.Buffer = append(State.Buffer, '\n')
+		State.Cursor++
 	default:
 		State.Buffer = append(State.Buffer, byte(event.Rune()))
+		State.Cursor++
 	}
-	State.TextView.SetText(string(State.Buffer))
+	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
 	State.App.Draw()
 	saveFile()
 	return nil
+}
+
+func AddCursor(buffer []byte, cursor int) []byte {
+	if cursor == len(buffer) {
+		return append(buffer, []byte("[::r] [::-]")...)
+	}
+
+	return buffer
 }
