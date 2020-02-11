@@ -5,7 +5,7 @@ import (
 )
 
 func saveFile() bool {
-	d1 := []byte(State.Buffer)
+	d1 := []byte(string(State.Buffer))
 	err := ioutil.WriteFile(State.Filename, d1, 0700)
 	if err != nil {
 		panic(err)

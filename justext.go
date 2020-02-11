@@ -3,7 +3,7 @@ package justext
 import "github.com/rivo/tview"
 
 type EditorState struct {
-	Buffer   string
+	Buffer   []rune
 	App      *tview.Application
 	TextView *tview.TextView
 	Cursor   int
@@ -13,9 +13,10 @@ type EditorState struct {
 var State EditorState
 
 func Run() {
-	State = EditorState{}
+	State = EditorState{
+		Filename: "test.txt",
+	}
 
-	State.Filename = "test.txt"
 	grid := tview.NewGrid().
 		SetRows(1, 0, 1).
 		SetBorders(true).
