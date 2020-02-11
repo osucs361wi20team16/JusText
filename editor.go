@@ -23,6 +23,8 @@ func EditorInputHandler(event *tcell.EventKey) *tcell.EventKey {
 		// Esc key on this level just passes focus to the Menu
 		State.App.SetRoot(State.MainGrid, true)
 		State.App.SetFocus(State.MenuGrid)
+	case tcell.KeyEnter:
+		State.Buffer = append(State.Buffer, '\n')
 	default:
 		State.Buffer = append(State.Buffer, byte(event.Rune()))
 	}
