@@ -19,8 +19,10 @@ func EditorInputHandler(event *tcell.EventKey) *tcell.EventKey {
 			return nil
 		}
 		State.Buffer = State.Buffer[:len(State.Buffer)-1]
+	case tcell.KeyEnter:
+		State.Buffer = append(State.Buffer, '\n')
 	default:
-		State.Buffer = append(State.Buffer, event.Rune())
+		State.Buffer = append(State.Buffer, byte(event.Rune()))
 	}
 	State.TextView.SetText(string(State.Buffer))
 	State.App.Draw()

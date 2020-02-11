@@ -3,7 +3,7 @@ package justext
 import "github.com/rivo/tview"
 
 type EditorState struct {
-	Buffer   []rune
+	Buffer   []byte
 	App      *tview.Application
 	TextView *tview.TextView
 	Cursor   int
