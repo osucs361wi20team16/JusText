@@ -19,11 +19,9 @@ func EditorView() *tview.TextView {
 			RS = RS[:len(RS)-1]
 			State.Buffer = string(RS)
 		case tcell.KeyEscape:
-			State.SwitchMenuColumn = false
+			// Esc key on this level just passes focus to the Menu 
 			State.App.SetRoot(State.maingrid, true)
 			State.App.SetFocus(State.menuGrid)
-		case tcell.KeyTAB:
-			State.SwitchMenuColumn = true
 		default:
 			SB := &strings.Builder{}
 			SB.WriteString(State.Buffer)

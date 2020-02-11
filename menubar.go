@@ -1,40 +1,45 @@
 package justext
 
 import (
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
 func MenuBarView() *tview.Grid {
 
-	if State.menuGrid == nil {  // set up the drop down menus if they don't already exist
-		fileMenu := tview.NewDropDown().
-			SetOptions([]string{"File", "Open", "Save", "Save As", "Quit"}, nil).
-			SetCurrentOption(0)
+	fileMenu := tview.NewDropDown().
+		SetOptions([]string{"File", "Open", "Save", "Save As", "Quit"}, nil).
+		SetCurrentOption(0)
 
-		editMenu := tview.NewDropDown().
-			SetOptions([]string{"Edit", "Copy", "Paste", "Select All"}, nil).
-			SetCurrentOption(0)
+	editMenu := tview.NewDropDown().
+		SetOptions([]string{"Edit", "Copy", "Paste", "Select All"}, nil).
+		SetCurrentOption(0)
 
-		if State.SwitchMenuColumn == true {
-			State.menuGrid = tview.NewGrid().
-			SetColumns(-1, -1, -1, -1, -1, -1).
-			SetBorders(false).
-			AddItem(editMenu, 0, 1, 1, 1, 1, 1, true).
-			AddItem(fileMenu, 0, 0, 1, 1, 1, 1, false)
-		} else if State.SwitchMenuColumn == false {
-			State.menuGrid = tview.NewGrid().
-			SetColumns(-1, -1, -1, -1, -1, -1).
-			SetBorders(false).
-			AddItem(editMenu, 0, 1, 1, 1, 1, 1, false).
-			AddItem(fileMenu, 0, 0, 1, 1, 1, 1, true)
+	State.menuGrid = tview.NewGrid().
+		SetColumns(-1, -1, -1, -1, -1, -1).
+		SetBorders(false).
+		AddItem(fileMenu, 0, 0, 1, 1, 1, 1, true).
+		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
+
+	fileMenu.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEsc {
+			State.App.SetRoot(State.maingrid, true)
+			State.App.SetFocus(State.TextView)
 		}
-		
-	} else {  // otherwise, capture key strokes to change to other dropdown items or return focus to editor
-		
-		// func (g *Grid) InputHandler() func(event *tcell.EventKey, setFocus func(p Primitive))
-		
-	}
+		if key == tcell.KeyTab {
+			State.App.SetFocus(editMenu)
+		}
+	})
+
+	editMenu.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEsc {
+			State.App.SetRoot(State.maingrid, true)
+			State.App.SetFocus(State.TextView)
+		}
+		if key == tcell.KeyTab {
+			State.App.SetFocus(fileMenu)
+		}
+	})
 
 	return State.menuGrid
 }
-
