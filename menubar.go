@@ -1,15 +1,45 @@
 package justext
 
-import "github.com/rivo/tview"
+import (
+	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
+)
 
-func MenuBarView() *tview.Table {
-	menubar := tview.NewTable()
+func MenuBarView() *tview.Grid {
 
-	fileMenu := tview.NewTableCell("File")
-	editMenu := tview.NewTableCell("Edit")
+	fileMenu := tview.NewDropDown().
+		SetOptions([]string{"File", "Open", "Save", "Save As", "Quit"}, nil).
+		SetCurrentOption(0)
 
-	menubar.SetCell(0, 0, fileMenu)
-	menubar.SetCell(0, 1, editMenu)
+	editMenu := tview.NewDropDown().
+		SetOptions([]string{"Edit", "Copy", "Paste", "Select All"}, nil).
+		SetCurrentOption(0)
 
-	return menubar
+	State.menuGrid = tview.NewGrid().
+		SetColumns(-1, -1, -1, -1, -1, -1).
+		SetBorders(false).
+		AddItem(fileMenu, 0, 0, 1, 1, 1, 1, true).
+		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
+
+	fileMenu.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEsc {
+			State.App.SetRoot(State.maingrid, true)
+			State.App.SetFocus(State.TextView)
+		}
+		if key == tcell.KeyTab {
+			State.App.SetFocus(editMenu)
+		}
+	})
+
+	editMenu.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEsc {
+			State.App.SetRoot(State.maingrid, true)
+			State.App.SetFocus(State.TextView)
+		}
+		if key == tcell.KeyTab {
+			State.App.SetFocus(fileMenu)
+		}
+	})
+
+	return State.menuGrid
 }
