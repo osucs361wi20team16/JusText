@@ -15,4 +15,4 @@
 # vendor/
 
 # misc dev stuff
-test.txt
+*/**/test.txt
