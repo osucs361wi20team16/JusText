@@ -1,6 +1,10 @@
 package justext
 
-import "github.com/rivo/tview"
+import (
+	"log"
+
+	"github.com/rivo/tview"
+)
 
 type EditorState struct {
 	Buffer           []byte
@@ -16,18 +20,22 @@ type EditorState struct {
 var State EditorState
 
 func Run() {
+
 	State = EditorState{
 		SwitchMenuColumn: false,
 		Filename:         "text.txt",
-		MainGrid: tview.NewGrid().
-			SetRows(1, 0, 1).
-			SetBorders(true).
-			AddItem(MenuBarView(), 0, 0, 1, 1, 1, 1, false).
-			AddItem(EditorView(), 1, 0, 1, 1, 1, 1, true).
-			AddItem(StatusBarView(), 2, 0, 1, 1, 1, 1, false),
 	}
 
+	State.MainGrid = tview.NewGrid().
+		SetRows(1, 0, 1).
+		SetBorders(true).
+		AddItem(MenuBarView(), 0, 0, 1, 1, 1, 1, false).
+		AddItem(EditorView(), 1, 0, 1, 1, 1, 1, true).
+		AddItem(StatusBarView(), 2, 0, 1, 1, 1, 1, false)
+
 	State.App = tview.NewApplication()
+
+	log.Printf("state: %#v", State)
 
 	if err := State.App.
 		SetRoot(State.MainGrid, true).
