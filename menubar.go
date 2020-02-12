@@ -15,7 +15,7 @@ func MenuBarView() *tview.Grid {
 		SetOptions([]string{"Edit", "Copy", "Paste", "Select All"}, nil).
 		SetCurrentOption(0)
 
-	State.menuGrid = tview.NewGrid().
+	State.MenuGrid = tview.NewGrid().
 		SetColumns(-1, -1, -1, -1, -1, -1).
 		SetBorders(false).
 		AddItem(fileMenu, 0, 0, 1, 1, 1, 1, true).
@@ -23,7 +23,7 @@ func MenuBarView() *tview.Grid {
 
 	fileMenu.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEsc {
-			State.App.SetRoot(State.maingrid, true)
+			State.App.SetRoot(State.MainGrid, true)
 			State.App.SetFocus(State.TextView)
 		}
 		if key == tcell.KeyTab {
@@ -33,7 +33,7 @@ func MenuBarView() *tview.Grid {
 
 	editMenu.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEsc {
-			State.App.SetRoot(State.maingrid, true)
+			State.App.SetRoot(State.MainGrid, true)
 			State.App.SetFocus(State.TextView)
 		}
 		if key == tcell.KeyTab {
@@ -41,5 +41,5 @@ func MenuBarView() *tview.Grid {
 		}
 	})
 
-	return State.menuGrid
+	return State.MenuGrid
 }
