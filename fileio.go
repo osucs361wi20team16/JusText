@@ -2,6 +2,7 @@ package justext
 
 import (
 	"io/ioutil"
+	"fmt"
 )
 
 func saveFile() bool {
@@ -11,4 +12,20 @@ func saveFile() bool {
 		panic(err)
 	}
 	return true
+}
+
+func openFile() {
+
+	file, err := ioutil.ReadFile("inTest.txt")
+
+    if err != nil {
+        fmt.Println("File reading error", err)
+        return
+	}
+	
+	State.Buffer = []byte(file) 
+
+	State.App.SetRoot(State.MainGrid, true)
+	State.App.SetFocus(State.TextView)
+
 }

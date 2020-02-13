@@ -33,7 +33,7 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	}
 	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
 	State.App.Draw()
-	saveFile()
+	// saveFile()
 	return nil
 }
 func AddCursor(buffer []byte, cursor int) []byte {
