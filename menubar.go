@@ -3,13 +3,12 @@ package justext
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
-
 )
 
 func MenuBarView() *tview.Grid {
 
 	fileMenu := tview.NewDropDown().
-		SetOptions([]string{"File", "Open", "Save", "Save As", "Quit"}, nil).
+		SetOptions([]string{"File","Open", "Save", "Save As", "Quit"}, nil).
 		SetCurrentOption(0)
 
 	editMenu := tview.NewDropDown().
