@@ -26,9 +26,15 @@ func MenuBarView() *tview.Grid {
 		if text == "Open" {
 
 			form := tview.NewForm().
-				AddInputField("File Name", "", 0, nil, nil)
+				AddInputField("File Name", "", 20, nil, nil)
 			
 			form.AddButton("Open", func() {openFile(form.GetFormItem(0).(*tview.InputField).GetText())})
+			form.AddButton("Cancel", func() {
+				State.App.SetRoot(State.MainGrid, true)
+				State.App.SetFocus(State.TextView)
+			})
+
+
 
 			State.App.SetRoot(form, true).SetFocus(form)
 		}
@@ -53,10 +59,8 @@ func MenuBarView() *tview.Grid {
 			})
 
 			State.App.SetRoot(form, true).SetFocus(form)
-
 		}
-		
-		
+
 		if text == "Quit" {
 			State.App.Stop()
 		}
