@@ -2,7 +2,8 @@ package justext
 
 import (
 	"io/ioutil"
-	"fmt"
+	"os"
+	"log"
 )
 
 func saveFile() bool {
@@ -15,15 +16,18 @@ func saveFile() bool {
 }
 
 func openFile(openFileName string) {
-
-	file, err := ioutil.ReadFile(openFileName)
-
-    if err != nil {
-        fmt.Println("File reading error", err)
-        return
-	}
 	
-	State.Buffer = []byte(file) 
+	file, err := os.OpenFile(openFileName, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	State.Filename = openFileName
+	fileReader, err := ioutil.ReadAll(file)
+
+	State.Buffer = []byte(fileReader) 
+	
 
 	State.App.SetRoot(State.MainGrid, true)
 	State.App.SetFocus(State.TextView)
