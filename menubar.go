@@ -22,12 +22,9 @@ func MenuBarView() *tview.Grid {
 		AddItem(fileMenu, 0, 0, 1, 1, 1, 1, true).
 		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
 
-	RunSetSelectedFunc := false
-	
 	fileMenu.SetSelectedFunc(func(text string, index int) {
 		if text == "Open" {
 			openFile()
-			RunSetSelectedFunc = true
 		}
 		if text == "Save" {
 			saveFile()
