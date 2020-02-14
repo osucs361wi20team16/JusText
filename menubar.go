@@ -3,6 +3,7 @@ package justext
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+
 )
 
 func MenuBarView() *tview.Grid {
@@ -20,6 +21,28 @@ func MenuBarView() *tview.Grid {
 		SetBorders(false).
 		AddItem(fileMenu, 0, 0, 1, 1, 1, 1, true).
 		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
+
+	fileMenu.SetSelectedFunc(func(text string, index int) {
+		
+		if text == "Open" {
+
+			form := tview.NewForm().
+				AddInputField("File Name", "", 0, nil, nil)
+			
+			form.AddButton("Open", func() {openFile(form.GetFormItem(0).(*tview.InputField).GetText())})
+
+			State.App.SetRoot(form, true).SetFocus(form)
+		}
+		
+		//	openFile()
+		// }
+		if text == "Save" {
+			saveFile()
+		}
+		if text == "Quit" {
+			State.App.Stop()
+		}
+	})
 
 	fileMenu.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEsc {
@@ -40,6 +63,5 @@ func MenuBarView() *tview.Grid {
 			State.App.SetFocus(fileMenu)
 		}
 	})
-
 	return State.MenuGrid
 }

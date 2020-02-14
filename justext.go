@@ -10,13 +10,11 @@ type EditorState struct {
 	MenuGrid         *tview.Grid
 	MainGrid         *tview.Grid
 	Filename         string
-	SwitchMenuColumn bool
 }
 
 var State EditorState
 
 func Run() {
-	State.SwitchMenuColumn = false
 	State.Filename = "test.txt"
 	State.MainGrid = tview.NewGrid().
 		SetRows(1, 0, 1).
