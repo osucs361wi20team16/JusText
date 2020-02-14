@@ -27,5 +27,6 @@ func openFile() {
 
 	State.App.SetRoot(State.MainGrid, true)
 	State.App.SetFocus(State.TextView)
-
+	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.App.Draw()
 }
