@@ -23,9 +23,19 @@ func MenuBarView() *tview.Grid {
 		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
 
 	fileMenu.SetSelectedFunc(func(text string, index int) {
+		
 		if text == "Open" {
-			openFile()
+
+			form := tview.NewForm().
+				AddInputField("File Name", "", 0, nil, nil)
+			
+			form.AddButton("Open", func() {openFile(form.GetFormItem(0).(*tview.InputField).GetText())})
+
+			State.App.SetRoot(form, true).SetFocus(form)
 		}
+		
+		//	openFile()
+		// }
 		if text == "Save" {
 			saveFile()
 		}

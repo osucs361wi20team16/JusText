@@ -14,9 +14,9 @@ func saveFile() bool {
 	return true
 }
 
-func openFile() {
+func openFile(openFileName string) {
 
-	file, err := ioutil.ReadFile("inTest.txt")
+	file, err := ioutil.ReadFile(openFileName)
 
     if err != nil {
         fmt.Println("File reading error", err)
