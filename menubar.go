@@ -34,11 +34,30 @@ func MenuBarView() *tview.Grid {
 			State.App.SetRoot(form, true).SetFocus(form)
 		}
 		
-		//	openFile()
-		// }
 		if text == "Save" {
 			saveFile()
 		}
+		
+		if text == "Save As" {
+		
+			form := tview.NewForm().
+					AddInputField("File Name", "", 0, nil, nil)
+		
+			form.AddButton("Save", func() {
+				State.Filename = form.GetFormItem(0).(*tview.InputField).GetText()
+				saveFile()
+			
+				State.App.SetRoot(State.MainGrid, true)
+				State.App.SetFocus(State.TextView)
+				State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+				State.App.Draw()
+			})
+
+			State.App.SetRoot(form, true).SetFocus(form)
+
+		}
+		
+		
 		if text == "Quit" {
 			State.App.Stop()
 		}

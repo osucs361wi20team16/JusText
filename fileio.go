@@ -8,7 +8,7 @@ import (
 
 func saveFile() bool {
 	d1 := []byte(State.Buffer)
-	err := ioutil.WriteFile(State.Filename, d1, 0700)
+	err := ioutil.WriteFile(State.Filename, d1, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +28,6 @@ func openFile(openFileName string) {
 
 	State.Buffer = []byte(fileReader) 
 	
-
 	State.App.SetRoot(State.MainGrid, true)
 	State.App.SetFocus(State.TextView)
 	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
