@@ -5,6 +5,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+func DisplayEditor() {
+    State.App.SetRoot(State.MainGrid, true)
+    State.App.SetFocus(State.TextView)
+    State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+    State.App.Draw()
+}
+
 func EditorView() *tview.TextView {
 	State.TextView = tview.NewTextView().SetDynamicColors(true)
 	State.TextView.SetInputCapture(EditorInputCapture)

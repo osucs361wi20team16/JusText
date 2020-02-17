@@ -10,6 +10,8 @@ func saveFile() bool {
 	if err != nil {
 		panic(err)
 	}
+
+    UpdateStatusBar("Saved to " + "\"" + State.Filename + "\"!")
 	return true
 }
 
@@ -23,9 +25,7 @@ func openFile(openFileName string) {
 	}
 
 	State.Buffer = []byte(file)
+    State.Filename = openFileName
 
-	State.App.SetRoot(State.MainGrid, true)
-	State.App.SetFocus(State.TextView)
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
-	State.App.Draw()
+    UpdateStatusBar("Editing " + "\"" + State.Filename + "\"!")
 }

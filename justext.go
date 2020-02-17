@@ -6,6 +6,7 @@ type EditorState struct {
 	Buffer           []byte
 	App              *tview.Application
 	TextView         *tview.TextView
+    StatusBar        *tview.TextView
 	Cursor           int
 	MenuGrid         *tview.Grid
 	MainGrid         *tview.Grid
