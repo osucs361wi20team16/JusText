@@ -2,11 +2,12 @@ package justext
 
 import (
 	"io/ioutil"
-	"fmt"
+	"os"
+	"log"
 )
 
 func saveFile() bool {
-	err := ioutil.WriteFile(State.Filename, State.Buffer, 0700)
+	err := ioutil.WriteFile(State.Filename, State.Buffer, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -16,8 +17,15 @@ func saveFile() bool {
 }
 
 func openFile(openFileName string) {
+	
+	file, err := os.OpenFile(openFileName, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
 
-	file, err := ioutil.ReadFile(openFileName)
+	State.Filename = openFileName
+	fileReader, err := ioutil.ReadAll(file)
 
     if err != nil {
         fmt.Println("File reading error", err)
