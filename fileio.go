@@ -1,9 +1,10 @@
 package justext
 
 import (
+	"fmt"
 	"io/ioutil"
-	"os"
 	"log"
+	"os"
 )
 
 func saveFile() bool {
@@ -12,12 +13,12 @@ func saveFile() bool {
 		panic(err)
 	}
 
-    UpdateStatusBar("Saved to " + "\"" + State.Filename + "\"!")
+	UpdateStatusBar("Saved to " + "\"" + State.Filename + "\"!")
 	return true
 }
 
 func openFile(openFileName string) {
-	
+
 	file, err := os.OpenFile(openFileName, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -25,15 +26,15 @@ func openFile(openFileName string) {
 	defer file.Close()
 
 	State.Filename = openFileName
-	fileReader, err := ioutil.ReadAll(file)
+	fileReader, readError := ioutil.ReadAll(file)
 
-    if err != nil {
-        fmt.Println("File reading error", err)
-        return
+	if readError != nil {
+		fmt.Println("File reading error", err)
+		return
 	}
 
-	State.Buffer = []byte(file)
-    State.Filename = openFileName
+	State.Buffer = []byte(fileReader)
+	State.Filename = openFileName
 
-    UpdateStatusBar("Editing " + "\"" + State.Filename + "\"!")
+	UpdateStatusBar("Editing " + "\"" + State.Filename + "\"!")
 }

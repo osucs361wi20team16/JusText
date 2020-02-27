@@ -8,7 +8,7 @@ import (
 func MenuBarView() *tview.Grid {
 
 	fileMenu := tview.NewDropDown().
-		SetOptions([]string{"File","Open", "Save", "Save As", "Quit"}, nil).
+		SetOptions([]string{"File", "Open", "Save", "Save As", "Quit"}, nil).
 		SetCurrentOption(0)
 
 	editMenu := tview.NewDropDown().
@@ -22,48 +22,48 @@ func MenuBarView() *tview.Grid {
 		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
 
 	fileMenu.SetSelectedFunc(func(text string, index int) {
-        switch text {
-        case "Open":
-            form := tview.NewForm().
+		switch text {
+		case "Open":
+			form := tview.NewForm().
 				AddInputField("File Name", "", 0, nil, nil)
 
 			form.AddButton("Open", func() {
-                openFile(form.GetFormItem(0).(*tview.InputField).GetText())
-                DisplayEditor()
-            })
+				openFile(form.GetFormItem(0).(*tview.InputField).GetText())
+				DisplayEditor()
+			})
 
 			State.App.SetRoot(form, true).SetFocus(form)
-            fileMenu.SetCurrentOption(0)
-        case "Save":
-            saveFile()
-            DisplayEditor()
-            fileMenu.SetCurrentOption(0)
-        case "Save As":
-            form := tview.NewForm().
-                AddInputField("File Name", "", 0, nil, nil)
+			fileMenu.SetCurrentOption(0)
+		case "Save":
+			saveFile()
+			DisplayEditor()
+			fileMenu.SetCurrentOption(0)
+		case "Save As":
+			form := tview.NewForm().
+				AddInputField("File Name", "", 0, nil, nil)
 
-            form.AddButton("Save", func() {
-                State.Filename = form.GetFormItem(0).(*tview.InputField).GetText()
-                saveFile()
-                DisplayEditor()
-            })
+			form.AddButton("Save", func() {
+				State.Filename = form.GetFormItem(0).(*tview.InputField).GetText()
+				saveFile()
+				DisplayEditor()
+			})
 
-            State.App.SetRoot(form, true).SetFocus(form)
-            fileMenu.SetCurrentOption(0)
-        case "Quit":
-            State.App.Stop()
-        }
+			State.App.SetRoot(form, true).SetFocus(form)
+			fileMenu.SetCurrentOption(0)
+		case "Quit":
+			State.App.Stop()
+		}
 	})
 
 	fileMenu.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEsc {
 			State.App.SetRoot(State.MainGrid, true)
 			State.App.SetFocus(State.TextView)
-            fileMenu.SetCurrentOption(0)
+			fileMenu.SetCurrentOption(0)
 		}
 		if key == tcell.KeyTab {
 			State.App.SetFocus(editMenu)
-            fileMenu.SetCurrentOption(0)
+			fileMenu.SetCurrentOption(0)
 		}
 	})
 
@@ -71,11 +71,11 @@ func MenuBarView() *tview.Grid {
 		if key == tcell.KeyEsc {
 			State.App.SetRoot(State.MainGrid, true)
 			State.App.SetFocus(State.TextView)
-            editMenu.SetCurrentOption(0)
+			editMenu.SetCurrentOption(0)
 		}
 		if key == tcell.KeyTab {
 			State.App.SetFocus(fileMenu)
-            editMenu.SetCurrentOption(0)
+			editMenu.SetCurrentOption(0)
 		}
 	})
 	return State.MenuGrid

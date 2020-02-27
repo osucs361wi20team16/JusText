@@ -1,27 +1,25 @@
 package justext
 
 import (
-	   "github.com/rivo/tview"
-		"os"
+	"os"
+
+	"github.com/rivo/tview"
 )
 
 type EditorState struct {
-	Buffer           []byte
-	App              *tview.Application
-	TextView         *tview.TextView
-    StatusBar        *tview.TextView
-	Cursor           int
-	MenuGrid         *tview.Grid
-	MainGrid         *tview.Grid
-	Filename         string
+	Buffer    []byte
+	App       *tview.Application
+	TextView  *tview.TextView
+	StatusBar *tview.TextView
+	Cursor    int
+	MenuGrid  *tview.Grid
+	MainGrid  *tview.Grid
+	Filename  string
 }
 
 var State EditorState
 
 func Run() {
-	
-
-	
 
 	State.MainGrid = tview.NewGrid().
 		SetRows(1, 0, 1).
@@ -33,10 +31,10 @@ func Run() {
 	State.App = tview.NewApplication()
 
 	if len(os.Args) == 1 {
-		State.Filename = "test.txt"  // open this file by default
+		State.Filename = "test.txt" // open this file by default
 		openFile(State.Filename)
 	} else {
-		State.Filename = os.Args[1]  // if there is a command line argument, open that instead
+		State.Filename = os.Args[1] // if there is a command line argument, open that instead
 		openFile(State.Filename)
 	}
 

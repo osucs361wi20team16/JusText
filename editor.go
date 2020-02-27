@@ -6,10 +6,10 @@ import (
 )
 
 func DisplayEditor() {
-    State.App.SetRoot(State.MainGrid, true)
-    State.App.SetFocus(State.TextView)
-    State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
-    State.App.Draw()
+	State.App.SetRoot(State.MainGrid, true)
+	State.App.SetFocus(State.TextView)
+	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.App.Draw()
 }
 
 func EditorView() *tview.TextView {
@@ -37,7 +37,7 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	case tcell.KeyRune:
 		State.Buffer = append(State.Buffer, byte(event.Rune()))
 		State.Cursor++
-    default:
+	default:
 
 	}
 	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
