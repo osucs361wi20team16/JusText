@@ -49,6 +49,7 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 
 	return nil
 }
+
 func AddCursor(buffer []byte, cursor int) []byte {
 	if cursor == len(buffer) {
 		return append(buffer, []byte("[::r] [::-]")...)
@@ -56,13 +57,18 @@ func AddCursor(buffer []byte, cursor int) []byte {
 		//ex: testing, cursor=3
 		//  -> tes[::r]t[::-]ing
 
+		cursor = 5
+
 		// Pull out character where cursor is positioned
 		cursorByte := buffer[cursor]
 
 		// cursorBytes := []byte("[::r]" + string(cursorByte) + "[::-]")
 		cursorBytes := []byte("//" + string(cursorByte) + "//")
 
-		newBuffer := append(buffer[:cursor], cursorBytes...)
+		newBuffer := buffer
+		_ = append(newBuffer[:cursor], cursorBytes...)
+		// newBuffer = append(newBuffer, []byte("testing")...)
+		_ = append(newBuffer, buffer[cursor+1:]...)
 		// newBuffer = append(newBuffer, buffer[cursor+1:]...)
 
 		return newBuffer
