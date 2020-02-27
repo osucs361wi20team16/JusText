@@ -21,6 +21,7 @@ func EditorView() *tview.TextView {
 
 func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Key() {
+	// TODO — Handle arrow key presses
 	case tcell.KeyBS, tcell.KeyDEL:
 		if len(State.Buffer) == 0 {
 			return nil
@@ -47,7 +48,18 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 func AddCursor(buffer []byte, cursor int) []byte {
 	if cursor == len(buffer) {
 		return append(buffer, []byte("[::r] [::-]")...)
+	} else {
+		//ex: testing, cursor=3
+		//  -> tes[::r]t[::-]ing
+
+		// pull out character
+		cursorCharacter := string(buffer[cursor])
+
+		// stick frankin-string back in where the character was
+		cursorString := []byte("[::r]" + cursorCharacter + "[::-]")
+
 	}
+	// TODO — Add cursor highlight
 
 	return buffer
 }
