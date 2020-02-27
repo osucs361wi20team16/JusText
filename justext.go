@@ -33,6 +33,8 @@ func Run() {
 	if len(os.Args) == 1 {
 		State.Filename = "test.txt" // open this file by default
 		openFile(State.Filename)
+		// testing TODO: remove
+		State.Cursor = 2
 	} else {
 		State.Filename = os.Args[1] // if there is a command line argument, open that instead
 		openFile(State.Filename)

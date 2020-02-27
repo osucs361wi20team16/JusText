@@ -8,6 +8,11 @@ import (
 func DisplayEditor() {
 	State.App.SetRoot(State.MainGrid, true)
 	State.App.SetFocus(State.TextView)
+	UpdateEditor()
+}
+
+// Redraw the editor view.
+func UpdateEditor() {
 	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
 	State.App.Draw()
 }
@@ -39,10 +44,9 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		State.Buffer = append(State.Buffer, byte(event.Rune()))
 		State.Cursor++
 	default:
-
+		UpdateEditor()
 	}
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
-	State.App.Draw()
+
 	return nil
 }
 func AddCursor(buffer []byte, cursor int) []byte {
@@ -52,14 +56,15 @@ func AddCursor(buffer []byte, cursor int) []byte {
 		//ex: testing, cursor=3
 		//  -> tes[::r]t[::-]ing
 
-		// pull out character
-		cursorCharacter := string(buffer[cursor])
+		// Pull out character where cursor is positioned
+		cursorByte := buffer[cursor]
 
-		// stick frankin-string back in where the character was
-		cursorString := []byte("[::r]" + cursorCharacter + "[::-]")
+		// cursorBytes := []byte("[::r]" + string(cursorByte) + "[::-]")
+		cursorBytes := []byte("//" + string(cursorByte) + "//")
 
+		newBuffer := append(buffer[:cursor], cursorBytes...)
+		// newBuffer = append(newBuffer, buffer[cursor+1:]...)
+
+		return newBuffer
 	}
-	// TODO — Add cursor highlight
-
-	return buffer
 }
