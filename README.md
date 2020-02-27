@@ -21,5 +21,5 @@ JusText text editor Agile project for CS361
  Edit the file in the File editing area just like any other editing application.
 
 ### Saving
- Save you file using the file menu. 
+ Save your file using the file menu. 
  (How do we open the menus?)
