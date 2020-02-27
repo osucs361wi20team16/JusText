@@ -65,10 +65,16 @@ func AddCursor(buffer []byte, cursor int) []byte {
 		// cursorBytes := []byte("[::r]" + string(cursorByte) + "[::-]")
 		cursorBytes := []byte("//" + string(cursorByte) + "//")
 
-		newBuffer := buffer
-		_ = append(newBuffer[:cursor], cursorBytes...)
+		firstHalf := make([]byte, cursor)
+        copy(firstHalf, buffer[:cursor])
+        secondHalf := make([]byte, len(buffer) - cursor)
+        copy(secondHalf, buffer[cursor + 1:])
+
+
+
+		newBuffer := append(firstHalf, cursorBytes...)
 		// newBuffer = append(newBuffer, []byte("testing")...)
-		_ = append(newBuffer, buffer[cursor+1:]...)
+		newBuffer = append(newBuffer, secondHalf...)
 		// newBuffer = append(newBuffer, buffer[cursor+1:]...)
 
 		return newBuffer
