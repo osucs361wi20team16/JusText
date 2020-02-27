@@ -1,32 +1,40 @@
 package justext
 
 import (
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 func saveFile() bool {
-	d1 := []byte(State.Buffer)
-	err := ioutil.WriteFile(State.Filename, d1, 0700)
+	err := ioutil.WriteFile(State.Filename, State.Buffer, 0666)
 	if err != nil {
 		panic(err)
 	}
+
+	UpdateStatusBar("Saved to " + "\"" + State.Filename + "\"!")
 	return true
 }
 
 func openFile(openFileName string) {
 
-	file, err := ioutil.ReadFile(openFileName)
-
-    if err != nil {
-        fmt.Println("File reading error", err)
-        return
+	file, err := os.OpenFile(openFileName, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
 	}
-	
-	State.Buffer = []byte(file) 
+	defer file.Close()
 
-	State.App.SetRoot(State.MainGrid, true)
-	State.App.SetFocus(State.TextView)
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
-	State.App.Draw()
+	State.Filename = openFileName
+	fileReader, readError := ioutil.ReadAll(file)
+
+	if readError != nil {
+		fmt.Println("File reading error", err)
+		return
+	}
+
+	State.Buffer = []byte(fileReader)
+	State.Filename = openFileName
+
+	UpdateStatusBar("Editing " + "\"" + State.Filename + "\"!")
 }

@@ -3,7 +3,6 @@ package justext
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
-
 )
 
 func MenuBarView() *tview.Grid {
@@ -23,23 +22,35 @@ func MenuBarView() *tview.Grid {
 		AddItem(editMenu, 0, 1, 1, 1, 1, 1, false)
 
 	fileMenu.SetSelectedFunc(func(text string, index int) {
-		
-		if text == "Open" {
-
+		switch text {
+		case "Open":
 			form := tview.NewForm().
 				AddInputField("File Name", "", 0, nil, nil)
-			
-			form.AddButton("Open", func() {openFile(form.GetFormItem(0).(*tview.InputField).GetText())})
+
+			form.AddButton("Open", func() {
+				openFile(form.GetFormItem(0).(*tview.InputField).GetText())
+				DisplayEditor()
+			})
 
 			State.App.SetRoot(form, true).SetFocus(form)
-		}
-		
-		//	openFile()
-		// }
-		if text == "Save" {
+			fileMenu.SetCurrentOption(0)
+		case "Save":
 			saveFile()
-		}
-		if text == "Quit" {
+			DisplayEditor()
+			fileMenu.SetCurrentOption(0)
+		case "Save As":
+			form := tview.NewForm().
+				AddInputField("File Name", "", 0, nil, nil)
+
+			form.AddButton("Save", func() {
+				State.Filename = form.GetFormItem(0).(*tview.InputField).GetText()
+				saveFile()
+				DisplayEditor()
+			})
+
+			State.App.SetRoot(form, true).SetFocus(form)
+			fileMenu.SetCurrentOption(0)
+		case "Quit":
 			State.App.Stop()
 		}
 	})
@@ -48,9 +59,11 @@ func MenuBarView() *tview.Grid {
 		if key == tcell.KeyEsc {
 			State.App.SetRoot(State.MainGrid, true)
 			State.App.SetFocus(State.TextView)
+			fileMenu.SetCurrentOption(0)
 		}
 		if key == tcell.KeyTab {
 			State.App.SetFocus(editMenu)
+			fileMenu.SetCurrentOption(0)
 		}
 	})
 
@@ -58,9 +71,11 @@ func MenuBarView() *tview.Grid {
 		if key == tcell.KeyEsc {
 			State.App.SetRoot(State.MainGrid, true)
 			State.App.SetFocus(State.TextView)
+			editMenu.SetCurrentOption(0)
 		}
 		if key == tcell.KeyTab {
 			State.App.SetFocus(fileMenu)
+			editMenu.SetCurrentOption(0)
 		}
 	})
 	return State.MenuGrid

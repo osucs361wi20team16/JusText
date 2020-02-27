@@ -5,6 +5,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+func DisplayEditor() {
+	State.App.SetRoot(State.MainGrid, true)
+	State.App.SetFocus(State.TextView)
+	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.App.Draw()
+}
+
 func EditorView() *tview.TextView {
 	State.TextView = tview.NewTextView().SetDynamicColors(true)
 	State.TextView.SetInputCapture(EditorInputCapture)
@@ -27,13 +34,14 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		// Esc key on this level just passes focus to the Menu
 		State.App.SetRoot(State.MainGrid, true)
 		State.App.SetFocus(State.MenuGrid)
-	default:
+	case tcell.KeyRune:
 		State.Buffer = append(State.Buffer, byte(event.Rune()))
 		State.Cursor++
+	default:
+
 	}
 	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
 	State.App.Draw()
-	// saveFile()
 	return nil
 }
 func AddCursor(buffer []byte, cursor int) []byte {
