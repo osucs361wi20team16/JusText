@@ -5,18 +5,20 @@ import (
 	"github.com/rivo/tview"
 )
 
+// DisplayEditor : Update editor and bring into focus
 func DisplayEditor() {
 	State.App.SetRoot(State.MainGrid, true)
 	State.App.SetFocus(State.TextView)
 	UpdateEditor()
 }
 
-// Redraw the editor view.
+// UpdateEditor : Redraw the editor view.
 func UpdateEditor() {
 	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
 	State.App.Draw()
 }
 
+// EditorView : ...
 func EditorView() *tview.TextView {
 	State.TextView = tview.NewTextView().SetDynamicColors(true)
 	State.TextView.SetInputCapture(EditorInputCapture)
@@ -24,6 +26,7 @@ func EditorView() *tview.TextView {
 	return State.TextView
 }
 
+// EditorInputCapture : ...
 func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Key() {
 	// TODO — Handle arrow key presses
@@ -31,11 +34,11 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		if State.Cursor == 0 {
 			return nil
 		}
-        if State.Cursor == len(State.Buffer) {
-		    State.Buffer = State.Buffer[:len(State.Buffer)-1]
-        } else {
-            State.Buffer = removeBytes(State.Buffer, State.Cursor - 1, State.Cursor)
-        }
+		if State.Cursor == len(State.Buffer) {
+			State.Buffer = State.Buffer[:len(State.Buffer)-1]
+		} else {
+			State.Buffer = removeBytes(State.Buffer, State.Cursor-1, State.Cursor)
+		}
 		State.Cursor--
 	case tcell.KeyEnter:
 		State.Buffer = append(State.Buffer, '\n')
@@ -44,54 +47,56 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		// Esc key on this level just passes focus to the Menu
 		State.App.SetRoot(State.MainGrid, true)
 		State.App.SetFocus(State.MenuGrid)
-    case tcell.KeyLeft:
-        if State.Cursor == 0 {
-            return nil
-        }
-        State.Cursor--
-    case tcell.KeyRight:
-        if State.Cursor == len(State.Buffer) {
-            return nil
-        }
-        State.Cursor++
+	case tcell.KeyLeft:
+		if State.Cursor == 0 {
+			return nil
+		}
+		State.Cursor--
+	case tcell.KeyRight:
+		if State.Cursor == len(State.Buffer) {
+			return nil
+		}
+		State.Cursor++
 	case tcell.KeyRune:
-        if State.Cursor == len(State.Buffer) {
-            State.Buffer = append(State.Buffer, byte(event.Rune()))
-        } else {
-            State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
-        }
+		if State.Cursor == len(State.Buffer) {
+			State.Buffer = append(State.Buffer, byte(event.Rune()))
+		} else {
+			State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
+		}
 		State.Cursor++
 	default:
 		UpdateEditor()
 	}
-    UpdateEditor()
+	UpdateEditor()
 	return nil
 }
 
 func insertBytes(buffer []byte, index int, newBytes []byte) []byte {
 
-    firstHalf := make([]byte, index)
-    copy(firstHalf, buffer[:index])
-    secondHalf := make([]byte, len(buffer) - index)
-    copy(secondHalf, buffer[index:])
+	firstHalf := make([]byte, index)
+	copy(firstHalf, buffer[:index])
+	secondHalf := make([]byte, len(buffer)-index)
+	copy(secondHalf, buffer[index:])
 
-    newBuffer := append(firstHalf, newBytes...)
-    newBuffer = append(newBuffer, secondHalf...)
+	newBuffer := append(firstHalf, newBytes...)
+	newBuffer = append(newBuffer, secondHalf...)
 
-    return newBuffer
+	return newBuffer
 }
 
-func removeBytes(buffer []byte, startId int, endId int) []byte {
-    firstHalf := make([]byte, startId)
-    copy(firstHalf, buffer[:startId])
-    secondHalf := make([]byte, len(buffer) - endId)
-    copy(secondHalf, buffer[endId:])
+func removeBytes(buffer []byte, startID int, endID int) []byte {
+	firstHalf := make([]byte, startID)
+	copy(firstHalf, buffer[:startID])
+	secondHalf := make([]byte, len(buffer)-endID)
+	copy(secondHalf, buffer[endID:])
 
-    newBuffer := append(firstHalf, secondHalf...)
+	newBuffer := append(firstHalf, secondHalf...)
 
-    return newBuffer
+	return newBuffer
 }
 
+// AddCursor : Creates a copy of the current buffer with the
+// cursor inserted using tview bracket syntax.
 func AddCursor(buffer []byte, cursor int) []byte {
 	if cursor == len(buffer) {
 		return append(buffer, []byte("[::r] [::-]")...)
@@ -102,9 +107,9 @@ func AddCursor(buffer []byte, cursor int) []byte {
 		cursorBytes := []byte("[::r]" + string(cursorByte) + "[::-]")
 
 		firstHalf := make([]byte, cursor)
-        copy(firstHalf, buffer[:cursor])
-        secondHalf := make([]byte, len(buffer) - cursor)
-        copy(secondHalf, buffer[cursor + 1:])
+		copy(firstHalf, buffer[:cursor])
+		secondHalf := make([]byte, len(buffer)-cursor)
+		copy(secondHalf, buffer[cursor+1:])
 
 		newBuffer := append(firstHalf, cursorBytes...)
 		newBuffer = append(newBuffer, secondHalf...)
