@@ -3,6 +3,7 @@ package justext
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+    "fmt"
 )
 
 // DisplayEditor : Update editor and bring into focus
@@ -41,7 +42,11 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		}
 		State.Cursor--
 	case tcell.KeyEnter:
-		State.Buffer = append(State.Buffer, '\n')
+        if State.Cursor == len(State.Buffer) {
+			State.Buffer = append(State.Buffer, '\n')
+		} else {
+			State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{'\n'})
+		}
 		State.Cursor++
 	case tcell.KeyEscape:
 		// Esc key on this level just passes focus to the Menu
@@ -57,6 +62,16 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 			return nil
 		}
 		State.Cursor++
+    case tcell.KeyUp:
+        if State.Cursor == 0 {
+			return nil
+		}
+        State.Cursor = findPrevLine(State.Buffer, State.Cursor)
+    case tcell.KeyDown:
+        if State.Cursor == len(State.Buffer) {
+			return nil
+		}
+        State.Cursor = findNextLine(State.Buffer, State.Cursor)
 	case tcell.KeyRune:
 		if State.Cursor == len(State.Buffer) {
 			State.Buffer = append(State.Buffer, byte(event.Rune()))
@@ -69,6 +84,28 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	}
 	UpdateEditor()
 	return nil
+}
+
+func findPrevLine(buffer []byte, index int) int {
+    distance := 1
+    _, _, width, _ := State.TextView.GetInnerRect()
+    for (distance < width && distance < index &&
+        buffer[index - distance] != '\n') {
+        distance++
+    }
+    return index - distance
+}
+
+func findNextLine(buffer []byte, index int) int {
+    distance := 1
+    _, _, width, _ := State.TextView.GetInnerRect()
+    for (distance < width && distance + index < len(buffer) - 1 &&
+        buffer[index + distance] != '\n') {
+        distance++
+    }
+    dist_str := fmt.Sprintf("%v %v", distance, width)
+    UpdateStatusBar(dist_str)
+    return index + distance
 }
 
 func insertBytes(buffer []byte, index int, newBytes []byte) []byte {
@@ -102,9 +139,14 @@ func AddCursor(buffer []byte, cursor int) []byte {
 		return append(buffer, []byte("[::r] [::-]")...)
 	} else {
 		// Pull out character where cursor is positioned
-		cursorByte := buffer[cursor]
+        cursorByte := buffer[cursor]
 
-		cursorBytes := []byte("[::r]" + string(cursorByte) + "[::-]")
+        var cursorBytes []byte
+        if cursorByte == '\n' {
+            cursorBytes = []byte("[::r] [::-]" + "\n")
+        } else {
+		    cursorBytes = []byte("[::r]" + string(cursorByte) + "[::-]")
+        }
 
 		firstHalf := make([]byte, cursor)
 		copy(firstHalf, buffer[:cursor])
