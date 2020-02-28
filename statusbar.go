@@ -2,6 +2,7 @@ package justext
 
 import "github.com/rivo/tview"
 
+// StatusBarView : ...
 func StatusBarView() *tview.TextView {
 	State.StatusBar = tview.NewTextView()
 	State.StatusBar.SetText("JustText")
@@ -9,6 +10,7 @@ func StatusBarView() *tview.TextView {
 	// return tview.NewTextView().SetText("JusText")
 }
 
+// UpdateStatusBar : ...
 func UpdateStatusBar(text string) {
 	State.StatusBar.SetText(text)
 	State.App.Draw()

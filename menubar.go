@@ -5,6 +5,7 @@ import (
 	"github.com/rivo/tview"
 )
 
+// MenuBarView : ...
 func MenuBarView() *tview.Grid {
 
 	fileMenu := tview.NewDropDown().
