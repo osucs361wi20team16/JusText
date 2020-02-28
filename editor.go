@@ -29,7 +29,6 @@ func EditorView() *tview.TextView {
 // EditorInputCapture : ...
 func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Key() {
-	// TODO — Handle arrow key presses
 	case tcell.KeyBS, tcell.KeyDEL:
 		if State.Cursor == 0 {
 			return nil
