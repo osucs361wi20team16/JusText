@@ -1,6 +1,8 @@
 package justext
 
 import (
+	"regexp"
+
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
@@ -50,4 +52,15 @@ func AddCursor(buffer []byte, cursor int) []byte {
 	}
 
 	return buffer
+}
+
+// Original function source: https://www.dotnetperls.com/word-count-go
+
+func WordCount() int {
+	// Match non-space character sequences.
+	re := regexp.MustCompile(`[\S]+`)
+
+	// Find all matches and return count.
+	results := re.FindAllString(string(State.Buffer), -1)
+	return len(results)
 }
