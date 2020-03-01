@@ -1,6 +1,8 @@
 package justext
 
 import (
+	"bytes"
+	"fmt"
 	"regexp"
 
 	"github.com/gdamore/tcell"
@@ -16,7 +18,7 @@ func DisplayEditor() {
 
 // UpdateEditor : Redraw the editor view.
 func UpdateEditor() {
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.TextView.SetText(string(DisplayBuffer(State.Buffer, State.Cursor, State.Highlight)))
 	State.App.Draw()
 }
 
@@ -24,7 +26,7 @@ func UpdateEditor() {
 func EditorView() *tview.TextView {
 	State.TextView = tview.NewTextView().SetDynamicColors(true)
 	State.TextView.SetInputCapture(EditorInputCapture)
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.TextView.SetText(string(DisplayBuffer(State.Buffer, State.Cursor, State.Highlight)))
 	return State.TextView
 }
 
@@ -36,6 +38,7 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 			return nil
 		}
 		if State.Highlight != nil {
+			State.Highlighting = false
 			State.Buffer = append(
 				State.Buffer[:State.Highlight.First],
 				State.Buffer[State.Highlight.Last:]...,
@@ -60,14 +63,23 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	case tcell.KeyEscape:
 		if State.Highlight != nil {
 			// First press clears highlight if it exists
+			State.Highlighting = false
 			State.Highlight = nil
-		} else {
-			// Esc key on this level just passes focus to the Menu
-			State.App.SetRoot(State.MainGrid, true)
-			State.App.SetFocus(State.MenuGrid)
+			break
 		}
+		// Esc key on this level just passes focus to the Menu
+		State.App.SetRoot(State.MainGrid, true)
+		State.App.SetFocus(State.MenuGrid)
 	case tcell.KeyCtrlSpace:
-		State.Highlighting = !State.Highlighting
+		if State.Highlighting {
+			State.Highlighting = false
+			break
+		}
+		State.Highlighting = true
+		State.Highlight = &Range{
+			First: State.Cursor,
+			Last:  State.Cursor,
+		}
 	case tcell.KeyLeft:
 		if State.Cursor == 0 {
 			return nil
@@ -97,8 +109,16 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		State.Cursor++
 	default:
 	}
+	if State.Highlighting {
+		UpdateHighlight()
+	}
 	UpdateEditor()
 	return nil
+}
+
+func UpdateHighlight() {
+	State.Highlight.Last = State.Cursor
+	UpdateStatusBar(fmt.Sprintf("%#v", State.Highlight))
 }
 
 func findPrevLine(buffer []byte, index int) int {
@@ -144,36 +164,76 @@ func removeBytes(buffer []byte, startID int, endID int) []byte {
 	return newBuffer
 }
 
-// AddCursor : Creates a copy of the current buffer with the
-// cursor inserted using tview bracket syntax.
-func AddCursor(buffer []byte, cursor int) []byte {
-	if cursor == len(buffer) {
-		return append(buffer, []byte("[::r] [::-]")...)
-	}
-
-	// Pull out character where cursor is positioned
-	cursorByte := buffer[cursor]
-
-	var cursorBytes []byte
-	if cursorByte == '\n' {
-		cursorBytes = []byte("[::r] [::-]" + "\n")
+// DisplayBuffer : ...
+func DisplayBuffer(buf []byte, cursor int, highlight *Range) []byte {
+	displayBuffer := append(buf, ' ')
+	toReverse := []Range{}
+	if highlight != nil {
+		first := highlight.First
+		last := highlight.Last
+		if last < first {
+			first, last = last, first
+		}
+		switch {
+		case cursor < first:
+			toReverse = append(
+				toReverse,
+				Range{First: cursor, Last: cursor},
+				Range{First: first, Last: last},
+			)
+		case cursor > last:
+			toReverse = append(
+				toReverse,
+				Range{First: first, Last: last},
+				Range{First: cursor, Last: cursor},
+			)
+		case cursor == first:
+			toReverse = append(
+				toReverse,
+				Range{First: first + 1, Last: last},
+			)
+		case cursor == last:
+			toReverse = append(
+				toReverse,
+				Range{First: first, Last: last - 1},
+			)
+		case cursor > first && cursor < last:
+			toReverse = append(
+				toReverse,
+				Range{First: first, Last: cursor - 1},
+				Range{First: cursor + 1, Last: last},
+			)
+		}
 	} else {
-		cursorBytes = []byte("[::r]" + string(cursorByte) + "[::-]")
+		toReverse = append(toReverse, Range{
+			First: cursor,
+			Last:  cursor,
+		})
 	}
 
-	firstHalf := make([]byte, cursor)
-	copy(firstHalf, buffer[:cursor])
-	secondHalf := make([]byte, len(buffer)-cursor)
-	copy(secondHalf, buffer[cursor+1:])
-
-	newBuffer := append(firstHalf, cursorBytes...)
-	newBuffer = append(newBuffer, secondHalf...)
-
-	return newBuffer
+	ix := 0
+	parts := [][]byte{}
+	for _, rng := range toReverse {
+		l := displayBuffer[ix:rng.First]
+		c := displayBuffer[rng.First : rng.Last+1]
+		ix = rng.Last + 1
+		if bytes.Equal(c, []byte{'\n'}) {
+			c = []byte("[::r] [::-]\n")
+		} else {
+			c = append(append([]byte("[::r]"), c...), []byte("[::-]")...)
+		}
+		parts = append(parts, l, c)
+	}
+	parts = append(parts, displayBuffer[ix:])
+	displayBuffer = bytes.Join(parts, []byte{})
+	if State.StatusBar != nil {
+		UpdateStatusBar("\"" + string(displayBuffer) + "\"")
+	}
+	return displayBuffer
 }
 
+// WordCount : ...
 // Original function source: https://www.dotnetperls.com/word-count-go
-
 func WordCount() int {
 	// Match non-space character sequences.
 	re := regexp.MustCompile(`[\S]+`)

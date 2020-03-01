@@ -20,6 +20,7 @@ type EditorState struct {
 	Highlight    *Range
 }
 
+// Range : ...
 type Range struct {
 	First int
 	Last  int
