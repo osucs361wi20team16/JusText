@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
 )
 
 func saveFile() bool {
@@ -38,4 +41,60 @@ func openFile(openFileName string) {
 	UpdateEditor()
 
 	UpdateStatusBar("Editing " + "\"" + State.Filename + "\"!")
+}
+
+func listDir(dir string) *tview.Table {
+	listTable := tview.NewTable()
+
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	listTable.SetCell(0, 0, tview.NewTableCell("..").SetTextColor(tcell.ColorDimGray))
+	rowCount, colCount := 1, 0
+	for _, f := range files {
+		if f.IsDir() {
+			listTable.SetCell(rowCount, colCount, tview.NewTableCell(f.Name()).SetTextColor(tcell.ColorDimGray))
+		} else {
+			listTable.SetCell(rowCount, colCount, tview.NewTableCell(f.Name()))
+		}
+		if rowCount > 20 {
+			rowCount = 0
+			colCount++
+		} else {
+			rowCount++
+		}
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	return listTable
+}
+
+func runTable(table *tview.Table, app *tview.Application) {
+	app.SetRoot(table, true).SetFocus(table)
+	table.SetBorder(true).SetTitle("Open File").SetTitleColor(tcell.ColorBlue)
+	table.Select(0, 0).SetFixed(1, 1).SetSelectable(true, true).SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEscape {
+			DisplayEditor()
+		}
+		if key == tcell.KeyEnter {
+			table.SetSelectable(true, true)
+		}
+	}).SetSelectedFunc(func(row int, column int) {
+		if table.GetCell(row, column).Color == tcell.ColorDimGray { // this color indicates it is a directory
+
+			path, _ := os.Getwd()
+			dirStr := path + "/" + table.GetCell(row, column).Text
+			os.Chdir(dirStr)
+			table = listDir(dirStr)
+			runTable(table, app)
+
+		} else { // otherwise it is a file
+			path, _ := os.Getwd()
+			fileStr := path + "/" + table.GetCell(row, column).Text
+			openFile(fileStr)
+			DisplayEditor()
+		}
+	})
 }

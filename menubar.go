@@ -1,8 +1,9 @@
 package justext
 
 import (
-	"strconv"
 
+	"os"
+	"strconv"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
@@ -27,15 +28,17 @@ func MenuBarView() *tview.Grid {
 	fileMenu.SetSelectedFunc(func(text string, index int) {
 		switch text {
 		case "Open":
-			form := tview.NewForm().
-				AddInputField("File Name", "", 0, nil, nil)
+			path, _ := os.Getwd()
+			table := listDir(path)
+			runTable(table, State.App)
 
-			form.AddButton("Open", func() {
-				openFile(form.GetFormItem(0).(*tview.InputField).GetText())
-				DisplayEditor()
-			})
-
-			State.App.SetRoot(form, true).SetFocus(form)
+			//		form := tview.NewForm().
+			//			AddInputField("File Name", "", 0, nil, nil)
+			//		form.AddButton("Open", func() {
+			//			openFile(form.GetFormItem(0).(*tview.InputField).GetText())
+			//			DisplayEditor()
+			//		})
+			// State.App.SetRoot(form, true).SetFocus(form)
 			fileMenu.SetCurrentOption(0)
 		case "Save":
 			saveFile()
