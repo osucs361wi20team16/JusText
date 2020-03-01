@@ -8,14 +8,21 @@ import (
 
 // EditorState : ...
 type EditorState struct {
-	Buffer    []byte
-	App       *tview.Application
-	TextView  *tview.TextView
-	StatusBar *tview.TextView
-	Cursor    int
-	MenuGrid  *tview.Grid
-	MainGrid  *tview.Grid
-	Filename  string
+	Buffer       []byte
+	App          *tview.Application
+	TextView     *tview.TextView
+	StatusBar    *tview.TextView
+	Cursor       int
+	MenuGrid     *tview.Grid
+	MainGrid     *tview.Grid
+	Filename     string
+	Highlighting bool
+	Highlight    *Range
+}
+
+type Range struct {
+	First int
+	Last  int
 }
 
 // State : ...

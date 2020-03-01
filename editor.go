@@ -35,12 +35,21 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		if State.Cursor == 0 {
 			return nil
 		}
-		if State.Cursor == len(State.Buffer) {
-			State.Buffer = State.Buffer[:len(State.Buffer)-1]
+		if State.Highlight != nil {
+			State.Buffer = append(
+				State.Buffer[:State.Highlight.First],
+				State.Buffer[State.Highlight.Last:]...,
+			)
+			State.Cursor = State.Highlight.First
+			State.Highlight = nil
 		} else {
-			State.Buffer = removeBytes(State.Buffer, State.Cursor-1, State.Cursor)
+			if State.Cursor == len(State.Buffer) {
+				State.Buffer = State.Buffer[:len(State.Buffer)-1]
+			} else {
+				State.Buffer = removeBytes(State.Buffer, State.Cursor-1, State.Cursor)
+			}
+			State.Cursor--
 		}
-		State.Cursor--
 	case tcell.KeyEnter:
 		if State.Cursor == len(State.Buffer) {
 			State.Buffer = append(State.Buffer, '\n')
@@ -49,9 +58,16 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		}
 		State.Cursor++
 	case tcell.KeyEscape:
-		// Esc key on this level just passes focus to the Menu
-		State.App.SetRoot(State.MainGrid, true)
-		State.App.SetFocus(State.MenuGrid)
+		if State.Highlight != nil {
+			// First press clears highlight if it exists
+			State.Highlight = nil
+		} else {
+			// Esc key on this level just passes focus to the Menu
+			State.App.SetRoot(State.MainGrid, true)
+			State.App.SetFocus(State.MenuGrid)
+		}
+	case tcell.KeyCtrlSpace:
+		State.Highlighting = !State.Highlighting
 	case tcell.KeyLeft:
 		if State.Cursor == 0 {
 			return nil
@@ -80,7 +96,6 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		}
 		State.Cursor++
 	default:
-		UpdateEditor()
 	}
 	UpdateEditor()
 	return nil
