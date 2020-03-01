@@ -3,6 +3,7 @@ package justext
 import (
 	"bytes"
 	"regexp"
+	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -243,15 +244,23 @@ func DisplayBuffer(buf []byte, cursor int, highlight *Range) []byte {
 	l := displayBuffer[:rng.First]
 	c := displayBuffer[rng.First : rng.Last+1]
 	r := displayBuffer[rng.Last+1:]
-	if bytes.Equal(c, []byte{'\n'}) {
-		c = []byte("[::r] [::-]\n")
-	} else {
-		c = append(append([]byte("[::r]"), c...), []byte("[::-]")...)
+
+	cLines := bytes.Split(c, []byte("\n"))
+	newC := []byte{}
+	for i, line := range cLines {
+		newC = append(
+			newC,
+			append([]byte("[::r]"), line...)...,
+		)
+		if i < len(cLines)-1 {
+			newC = append(newC, []byte(" [::-]\n")...)
+		} else {
+			newC = append(newC, []byte("[::-]")...)
+		}
 	}
-	parts := append([][]byte{}, l, c, r)
-	displayBuffer = bytes.Join(parts, []byte{})
+	displayBuffer = bytes.Join(append([][]byte{}, l, newC, r), []byte{})
 	if State.StatusBar != nil {
-		UpdateStatusBar("\"" + string(displayBuffer) + "\"")
+		UpdateStatusBar("\"" + strings.Join(strings.Split(string(displayBuffer), "\n"), "\\n") + "\"")
 	}
 	return displayBuffer
 }
