@@ -3,7 +3,6 @@ package justext
 import (
 	"bytes"
 	"regexp"
-	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -258,11 +257,7 @@ func DisplayBuffer(buf []byte, cursor int, highlight *Range) []byte {
 			newC = append(newC, []byte("[::-]")...)
 		}
 	}
-	displayBuffer = bytes.Join(append([][]byte{}, l, newC, r), []byte{})
-	if State.StatusBar != nil {
-		UpdateStatusBar("\"" + strings.Join(strings.Split(string(displayBuffer), "\n"), "\\n") + "\"")
-	}
-	return displayBuffer
+	return bytes.Join(append([][]byte{}, l, newC, r), []byte{})
 }
 
 // WordCount : ...
