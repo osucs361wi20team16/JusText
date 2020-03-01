@@ -6,6 +6,7 @@ import (
 	"github.com/rivo/tview"
 )
 
+// EditorState : ...
 type EditorState struct {
 	Buffer    []byte
 	App       *tview.Application
@@ -17,8 +18,10 @@ type EditorState struct {
 	Filename  string
 }
 
+// State : ...
 var State EditorState
 
+// Run : ...
 func Run() {
 
 	State.MainGrid = tview.NewGrid().

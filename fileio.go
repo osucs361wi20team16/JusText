@@ -38,6 +38,7 @@ func openFile(openFileName string) {
 
 	State.Buffer = []byte(fileReader)
 	State.Filename = openFileName
+	UpdateEditor()
 
 	UpdateStatusBar("Editing " + "\"" + State.Filename + "\"!")
 }

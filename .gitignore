@@ -16,3 +16,5 @@
 
 #Mac (ugh)
 *.DS_Store
+
+cmd/justext/justext

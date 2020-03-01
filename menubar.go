@@ -1,12 +1,14 @@
 package justext
 
 import (
-	"os"
 
+	"os"
+	"strconv"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
+// MenuBarView : ...
 func MenuBarView() *tview.Grid {
 
 	fileMenu := tview.NewDropDown().
@@ -14,7 +16,7 @@ func MenuBarView() *tview.Grid {
 		SetCurrentOption(0)
 
 	editMenu := tview.NewDropDown().
-		SetOptions([]string{"Edit", "Copy", "Paste", "Select All"}, nil).
+		SetOptions([]string{"Edit", "Word Count", "Copy", "Paste", "Select All"}, nil).
 		SetCurrentOption(0)
 
 	State.MenuGrid = tview.NewGrid().
@@ -56,6 +58,13 @@ func MenuBarView() *tview.Grid {
 			fileMenu.SetCurrentOption(0)
 		case "Quit":
 			State.App.Stop()
+		}
+	})
+
+	editMenu.SetSelectedFunc(func(text string, index int) {
+		switch text {
+		case "Word Count":
+			UpdateStatusBar("Word count: " + strconv.Itoa(WordCount()))
 		}
 	})
 
