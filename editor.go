@@ -2,7 +2,6 @@ package justext
 
 import (
 	"bytes"
-	"fmt"
 	"regexp"
 
 	"github.com/gdamore/tcell"
@@ -34,18 +33,25 @@ func EditorView() *tview.TextView {
 func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Key() {
 	case tcell.KeyBS, tcell.KeyDEL:
-		if State.Cursor == 0 {
-			return nil
-		}
 		if State.Highlight != nil {
-			State.Highlighting = false
-			State.Buffer = append(
-				State.Buffer[:State.Highlight.First],
-				State.Buffer[State.Highlight.Last:]...,
-			)
-			State.Cursor = State.Highlight.First
+			first, last := State.Highlight.First, State.Highlight.Last
+			if last < first {
+				first, last = last, first
+			}
+			if last == len(State.Buffer) {
+				State.Buffer = State.Buffer[:first]
+			} else {
+				State.Buffer = append(
+					State.Buffer[:first],
+					State.Buffer[last+1:]...,
+				)
+			}
+			State.Cursor = first
 			State.Highlight = nil
 		} else {
+			if State.Cursor == 0 {
+				return nil
+			}
 			if State.Cursor == len(State.Buffer) {
 				State.Buffer = State.Buffer[:len(State.Buffer)-1]
 			} else {
@@ -63,62 +69,113 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	case tcell.KeyEscape:
 		if State.Highlight != nil {
 			// First press clears highlight if it exists
-			State.Highlighting = false
 			State.Highlight = nil
 			break
 		}
 		// Esc key on this level just passes focus to the Menu
 		State.App.SetRoot(State.MainGrid, true)
 		State.App.SetFocus(State.MenuGrid)
-	case tcell.KeyCtrlSpace:
-		if State.Highlighting {
-			State.Highlighting = false
-			break
-		}
-		State.Highlighting = true
-		State.Highlight = &Range{
-			First: State.Cursor,
-			Last:  State.Cursor,
-		}
 	case tcell.KeyLeft:
 		if State.Cursor == 0 {
 			return nil
 		}
 		State.Cursor--
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: State.Cursor + 1,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
+		} else {
+			State.Highlight = nil
+		}
 	case tcell.KeyRight:
 		if State.Cursor == len(State.Buffer) {
 			return nil
 		}
 		State.Cursor++
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: State.Cursor - 1,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
+		} else {
+			State.Highlight = nil
+		}
 	case tcell.KeyUp:
 		if State.Cursor == 0 {
 			return nil
 		}
+		oldCursor := State.Cursor
 		State.Cursor = findPrevLine(State.Buffer, State.Cursor)
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: oldCursor,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
+		} else {
+			State.Highlight = nil
+		}
 	case tcell.KeyDown:
 		if State.Cursor == len(State.Buffer) {
 			return nil
 		}
+		oldCursor := State.Cursor
 		State.Cursor = findNextLine(State.Buffer, State.Cursor)
-	case tcell.KeyRune:
-		if State.Cursor == len(State.Buffer) {
-			State.Buffer = append(State.Buffer, byte(event.Rune()))
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: oldCursor,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
 		} else {
-			State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
+			State.Highlight = nil
 		}
-		State.Cursor++
+	case tcell.KeyRune:
+		if State.Highlight != nil {
+			first, last := State.Highlight.First, State.Highlight.Last
+			if last < first {
+				first, last = last, first
+			}
+			if last == len(State.Buffer) {
+				State.Buffer = State.Buffer[:first]
+			} else {
+				State.Buffer = append(
+					append(
+						State.Buffer[:first],
+						byte(event.Rune()),
+					),
+					State.Buffer[last+1:]...,
+				)
+			}
+			State.Cursor = first
+			State.Highlight = nil
+		} else {
+			if State.Cursor == len(State.Buffer) {
+				State.Buffer = append(State.Buffer, byte(event.Rune()))
+			} else {
+				State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
+			}
+			State.Cursor++
+		}
 	default:
-	}
-	if State.Highlighting {
-		UpdateHighlight()
 	}
 	UpdateEditor()
 	return nil
-}
-
-func UpdateHighlight() {
-	State.Highlight.Last = State.Cursor
-	UpdateStatusBar(fmt.Sprintf("%#v", State.Highlight))
 }
 
 func findPrevLine(buffer []byte, index int) int {
@@ -167,64 +224,31 @@ func removeBytes(buffer []byte, startID int, endID int) []byte {
 // DisplayBuffer : ...
 func DisplayBuffer(buf []byte, cursor int, highlight *Range) []byte {
 	displayBuffer := append(buf, ' ')
-	toReverse := []Range{}
+	var rng Range
 	if highlight != nil {
-		first := highlight.First
-		last := highlight.Last
+		first, last := highlight.First, highlight.Last
 		if last < first {
 			first, last = last, first
 		}
-		switch {
-		case cursor < first:
-			toReverse = append(
-				toReverse,
-				Range{First: cursor, Last: cursor},
-				Range{First: first, Last: last},
-			)
-		case cursor > last:
-			toReverse = append(
-				toReverse,
-				Range{First: first, Last: last},
-				Range{First: cursor, Last: cursor},
-			)
-		case cursor == first:
-			toReverse = append(
-				toReverse,
-				Range{First: first + 1, Last: last},
-			)
-		case cursor == last:
-			toReverse = append(
-				toReverse,
-				Range{First: first, Last: last - 1},
-			)
-		case cursor > first && cursor < last:
-			toReverse = append(
-				toReverse,
-				Range{First: first, Last: cursor - 1},
-				Range{First: cursor + 1, Last: last},
-			)
+		rng = Range{
+			First: first,
+			Last:  last,
 		}
 	} else {
-		toReverse = append(toReverse, Range{
+		rng = Range{
 			First: cursor,
 			Last:  cursor,
-		})
-	}
-
-	ix := 0
-	parts := [][]byte{}
-	for _, rng := range toReverse {
-		l := displayBuffer[ix:rng.First]
-		c := displayBuffer[rng.First : rng.Last+1]
-		ix = rng.Last + 1
-		if bytes.Equal(c, []byte{'\n'}) {
-			c = []byte("[::r] [::-]\n")
-		} else {
-			c = append(append([]byte("[::r]"), c...), []byte("[::-]")...)
 		}
-		parts = append(parts, l, c)
 	}
-	parts = append(parts, displayBuffer[ix:])
+	l := displayBuffer[:rng.First]
+	c := displayBuffer[rng.First : rng.Last+1]
+	r := displayBuffer[rng.Last+1:]
+	if bytes.Equal(c, []byte{'\n'}) {
+		c = []byte("[::r] [::-]\n")
+	} else {
+		c = append(append([]byte("[::r]"), c...), []byte("[::-]")...)
+	}
+	parts := append([][]byte{}, l, c, r)
 	displayBuffer = bytes.Join(parts, []byte{})
 	if State.StatusBar != nil {
 		UpdateStatusBar("\"" + string(displayBuffer) + "\"")

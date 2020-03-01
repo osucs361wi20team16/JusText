@@ -8,16 +8,15 @@ import (
 
 // EditorState : ...
 type EditorState struct {
-	Buffer       []byte
-	App          *tview.Application
-	TextView     *tview.TextView
-	StatusBar    *tview.TextView
-	Cursor       int
-	MenuGrid     *tview.Grid
-	MainGrid     *tview.Grid
-	Filename     string
-	Highlighting bool
-	Highlight    *Range
+	Buffer    []byte
+	App       *tview.Application
+	TextView  *tview.TextView
+	StatusBar *tview.TextView
+	Cursor    int
+	MenuGrid  *tview.Grid
+	MainGrid  *tview.Grid
+	Filename  string
+	Highlight *Range
 }
 
 // Range : ...
