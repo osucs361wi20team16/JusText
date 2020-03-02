@@ -170,8 +170,8 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 			} else {
 				State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
 			}
-			State.Cursor++
 		}
+		State.Cursor++
 	default:
 	}
 	UpdateEditor()
