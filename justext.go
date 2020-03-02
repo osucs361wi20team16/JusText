@@ -16,6 +16,13 @@ type EditorState struct {
 	MenuGrid  *tview.Grid
 	MainGrid  *tview.Grid
 	Filename  string
+	Highlight *Range
+}
+
+// Range : ...
+type Range struct {
+	First int
+	Last  int
 }
 
 // State : ...

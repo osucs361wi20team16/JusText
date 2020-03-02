@@ -1,6 +1,7 @@
 package justext
 
 import (
+	"bytes"
 	"regexp"
 
 	"github.com/gdamore/tcell"
@@ -16,7 +17,7 @@ func DisplayEditor() {
 
 // UpdateEditor : Redraw the editor view.
 func UpdateEditor() {
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.TextView.SetText(string(DisplayBuffer(State.Buffer, State.Cursor, State.Highlight)))
 	State.App.Draw()
 }
 
@@ -24,7 +25,7 @@ func UpdateEditor() {
 func EditorView() *tview.TextView {
 	State.TextView = tview.NewTextView().SetDynamicColors(true)
 	State.TextView.SetInputCapture(EditorInputCapture)
-	State.TextView.SetText(string(AddCursor(State.Buffer, State.Cursor)))
+	State.TextView.SetText(string(DisplayBuffer(State.Buffer, State.Cursor, State.Highlight)))
 	return State.TextView
 }
 
@@ -32,15 +33,32 @@ func EditorView() *tview.TextView {
 func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Key() {
 	case tcell.KeyBS, tcell.KeyDEL:
-		if State.Cursor == 0 {
-			return nil
-		}
-		if State.Cursor == len(State.Buffer) {
-			State.Buffer = State.Buffer[:len(State.Buffer)-1]
+		if State.Highlight != nil {
+			first, last := State.Highlight.First, State.Highlight.Last
+			if last < first {
+				first, last = last, first
+			}
+			if last == len(State.Buffer) {
+				State.Buffer = State.Buffer[:first]
+			} else {
+				State.Buffer = append(
+					State.Buffer[:first],
+					State.Buffer[last+1:]...,
+				)
+			}
+			State.Cursor = first
+			State.Highlight = nil
 		} else {
-			State.Buffer = removeBytes(State.Buffer, State.Cursor-1, State.Cursor)
+			if State.Cursor == 0 {
+				return nil
+			}
+			if State.Cursor == len(State.Buffer) {
+				State.Buffer = State.Buffer[:len(State.Buffer)-1]
+			} else {
+				State.Buffer = removeBytes(State.Buffer, State.Cursor-1, State.Cursor)
+			}
+			State.Cursor--
 		}
-		State.Cursor--
 	case tcell.KeyEnter:
 		if State.Cursor == len(State.Buffer) {
 			State.Buffer = append(State.Buffer, '\n')
@@ -49,6 +67,11 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 		}
 		State.Cursor++
 	case tcell.KeyEscape:
+		if State.Highlight != nil {
+			// First press clears highlight if it exists
+			State.Highlight = nil
+			break
+		}
 		// Esc key on this level just passes focus to the Menu
 		State.App.SetRoot(State.MainGrid, true)
 		State.App.SetFocus(State.MenuGrid)
@@ -57,30 +80,99 @@ func EditorInputCapture(event *tcell.EventKey) *tcell.EventKey {
 			return nil
 		}
 		State.Cursor--
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: State.Cursor + 1,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
+		} else {
+			State.Highlight = nil
+		}
 	case tcell.KeyRight:
 		if State.Cursor == len(State.Buffer) {
 			return nil
 		}
 		State.Cursor++
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: State.Cursor - 1,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
+		} else {
+			State.Highlight = nil
+		}
 	case tcell.KeyUp:
 		if State.Cursor == 0 {
 			return nil
 		}
+		oldCursor := State.Cursor
 		State.Cursor = findPrevLine(State.Buffer, State.Cursor)
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: oldCursor,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
+		} else {
+			State.Highlight = nil
+		}
 	case tcell.KeyDown:
 		if State.Cursor == len(State.Buffer) {
 			return nil
 		}
+		oldCursor := State.Cursor
 		State.Cursor = findNextLine(State.Buffer, State.Cursor)
-	case tcell.KeyRune:
-		if State.Cursor == len(State.Buffer) {
-			State.Buffer = append(State.Buffer, byte(event.Rune()))
+		if event.Modifiers() == tcell.ModShift {
+			if State.Highlight == nil {
+				State.Highlight = &Range{
+					First: oldCursor,
+					Last:  State.Cursor,
+				}
+			} else {
+				State.Highlight.Last = State.Cursor
+			}
 		} else {
-			State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
+			State.Highlight = nil
+		}
+	case tcell.KeyRune:
+		if State.Highlight != nil {
+			first, last := State.Highlight.First, State.Highlight.Last
+			if last < first {
+				first, last = last, first
+			}
+			if last == len(State.Buffer) {
+				State.Buffer = State.Buffer[:first]
+			} else {
+				State.Buffer = append(
+					append(
+						State.Buffer[:first],
+						byte(event.Rune()),
+					),
+					State.Buffer[last+1:]...,
+				)
+			}
+			State.Cursor = first
+			State.Highlight = nil
+		} else {
+			if State.Cursor == len(State.Buffer) {
+				State.Buffer = append(State.Buffer, byte(event.Rune()))
+			} else {
+				State.Buffer = insertBytes(State.Buffer, State.Cursor, []byte{byte(event.Rune())})
+			}
 		}
 		State.Cursor++
 	default:
-		UpdateEditor()
 	}
 	UpdateEditor()
 	return nil
@@ -129,36 +221,47 @@ func removeBytes(buffer []byte, startID int, endID int) []byte {
 	return newBuffer
 }
 
-// AddCursor : Creates a copy of the current buffer with the
-// cursor inserted using tview bracket syntax.
-func AddCursor(buffer []byte, cursor int) []byte {
-	if cursor == len(buffer) {
-		return append(buffer, []byte("[::r] [::-]")...)
-	}
-
-	// Pull out character where cursor is positioned
-	cursorByte := buffer[cursor]
-
-	var cursorBytes []byte
-	if cursorByte == '\n' {
-		cursorBytes = []byte("[::r] [::-]" + "\n")
+// DisplayBuffer : ...
+func DisplayBuffer(buf []byte, cursor int, highlight *Range) []byte {
+	displayBuffer := append(buf, ' ')
+	var rng Range
+	if highlight != nil {
+		first, last := highlight.First, highlight.Last
+		if last < first {
+			first, last = last, first
+		}
+		rng = Range{
+			First: first,
+			Last:  last,
+		}
 	} else {
-		cursorBytes = []byte("[::r]" + string(cursorByte) + "[::-]")
+		rng = Range{
+			First: cursor,
+			Last:  cursor,
+		}
 	}
+	l := displayBuffer[:rng.First]
+	c := displayBuffer[rng.First : rng.Last+1]
+	r := displayBuffer[rng.Last+1:]
 
-	firstHalf := make([]byte, cursor)
-	copy(firstHalf, buffer[:cursor])
-	secondHalf := make([]byte, len(buffer)-cursor)
-	copy(secondHalf, buffer[cursor+1:])
-
-	newBuffer := append(firstHalf, cursorBytes...)
-	newBuffer = append(newBuffer, secondHalf...)
-
-	return newBuffer
+	cLines := bytes.Split(c, []byte("\n"))
+	newC := []byte{}
+	for i, line := range cLines {
+		newC = append(
+			newC,
+			append([]byte("[::r]"), line...)...,
+		)
+		if i < len(cLines)-1 {
+			newC = append(newC, []byte(" [::-]\n")...)
+		} else {
+			newC = append(newC, []byte("[::-]")...)
+		}
+	}
+	return bytes.Join(append([][]byte{}, l, newC, r), []byte{})
 }
 
+// WordCount : ...
 // Original function source: https://www.dotnetperls.com/word-count-go
-
 func WordCount() int {
 	// Match non-space character sequences.
 	re := regexp.MustCompile(`[\S]+`)
